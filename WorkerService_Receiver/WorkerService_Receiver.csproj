@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>dotnet-WorkerService_Receiver-326DFF4B-60D1-473F-8C29-414F696F906A</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Azure.Messaging.ServiceBus" Version="7.11.1" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="6.0.2-mauipre.1.22102.15" />
+  </ItemGroup>
+</Project>
