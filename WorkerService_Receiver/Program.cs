@@ -1,14 +1,25 @@
+using Microsoft.EntityFrameworkCore;
 using WorkerService_Receiver;
+using WorkerService_Receiver.Models;
+using WorkerService_Receiver.Repository;
 
 IHost host = Host.CreateDefaultBuilder(args)
     .UseWindowsService(options =>
     {
         options.ServiceName = "Receiver Service";
     })
-    .ConfigureServices(services =>
-    {
-        services.AddHostedService<Worker>();
-    })
+    .ConfigureServices((hostContext, services) =>
+       {
+           IConfiguration configuration = hostContext.Configuration;
+           AppSettings.ConnectionString = configuration.GetConnectionString("DefaultConnection");
+
+           AppSettings.QueueConnection = configuration.GetConnectionString("QueueConnection");
+
+           var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
+           optionsBuilder.UseSqlServer(AppSettings.ConnectionString);
+           services.AddScoped<AppDbContext>(db => new AppDbContext(optionsBuilder.Options));
+           services.AddHostedService<Worker>();
+       })
     .Build();
 
 

@@ -1,16 +1,14 @@
 using Azure.Messaging.ServiceBus;
+using System.Text.Json;
+using WorkerService_Receiver.Models;
 
 namespace WorkerService_Receiver
 {
     public class Worker : BackgroundService
     {
         private readonly ILogger<Worker> _logger;
-
         private ServiceBusClient client;
-
         private ServiceBusProcessor processor;
-
-
         public Worker(ILogger<Worker> logger)
         {
             _logger = logger;
@@ -26,18 +24,14 @@ namespace WorkerService_Receiver
             }
         }
 
-
         private async Task ReadQueue()
         {
-     
             var clientOptions = new ServiceBusClientOptions()
             {
                 TransportType = ServiceBusTransportType.AmqpWebSockets
             };
 
-            var connectionString = "Endpoint=sb://azureservicebusarielnamespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=T8WxMDJ5Z68wby1YBGI26sOTFlfpZkpJbCQcLvN6SmM=;EntityPath=cola1";
-            client = new ServiceBusClient(connectionString, clientOptions);
-
+            client = new ServiceBusClient(AppSettings.QueueConnection, clientOptions);
             processor = client.CreateProcessor("cola1", new ServiceBusProcessorOptions());
 
             try
@@ -50,7 +44,6 @@ namespace WorkerService_Receiver
 
                 Console.WriteLine("Wait for a minute and then press any key to end the processing");
                 Console.ReadKey();
-
                 Console.WriteLine("\nStopping the receiver...");
                 await processor.StopProcessingAsync();
                 Console.WriteLine("Stopped receiving messages");
@@ -65,14 +58,30 @@ namespace WorkerService_Receiver
         async Task MessageHandler(ProcessMessageEventArgs args)
         {
             string body = args.Message.Body.ToString();
-            Console.WriteLine($"Received: {body}");
+            _logger.LogInformation("\nReceived at: {time}", DateTimeOffset.Now);
+            _logger.LogInformation("Sending to database at: {time}", DateTimeOffset.Now);
+            await SendToDatabase(body);
             await args.CompleteMessageAsync(args.Message);
         }
-
         Task ErrorHandler(ProcessErrorEventArgs args)
         {
             Console.WriteLine(args.Exception.ToString());
             return Task.CompletedTask;
+        }
+        private async Task SendToDatabase(string body)
+        {
+            List<AccountDto> accountsDto = JsonSerializer.Deserialize<List<AccountDto>>(body);
+            IServerRepository dbServer = new ServerRepository();
+
+            foreach (var accountDto in accountsDto)
+            {
+                await dbServer.PostAccount(new Account
+                {
+                    Alias = accountDto.Alias,
+                    Balance = accountDto.Balance,
+                    Cbu =accountDto.Cbu,
+                }) ;
+            }
         }
     }
 }
