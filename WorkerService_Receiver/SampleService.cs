@@ -42,7 +42,6 @@ namespace WorkerService_Receiver
                 }
             }
         }
-
         private void DisplayAccountInformation(List<AccountDto> accountsDtos)
         {
             accountsDtos?.ForEach(account =>

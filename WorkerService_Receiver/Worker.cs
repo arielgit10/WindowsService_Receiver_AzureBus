@@ -1,5 +1,3 @@
-using Azure.Messaging.ServiceBus;
-using System.Text.Json;
 using WorkerService_Receiver.Models;
 
 namespace WorkerService_Receiver
@@ -10,15 +8,12 @@ namespace WorkerService_Receiver
         private readonly TimeSpan _period;
         private readonly IServiceScopeFactory _factory;
         private int _executionCount = 0;
-        public bool IsEnabled { get; set; }
-
         public Worker(ILogger<Worker> logger, IServiceScopeFactory factory)
         {
             _logger = logger;
             _period = TimeSpan.FromMinutes(AppConfiguration.IntervalMinutes);
             _factory = factory;
         }
-
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             using PeriodicTimer timer = new PeriodicTimer(_period);
@@ -37,7 +32,7 @@ namespace WorkerService_Receiver
                 catch (Exception ex)
                 {
                     _logger.LogInformation(
-                        $"Failed to execute PeriodicHostedService with exception message {ex.Message}. Good luck next round!");
+                        $"Failed to execute PeriodicHostedService with exception message {ex.Message}.");
                 }
             }
         }

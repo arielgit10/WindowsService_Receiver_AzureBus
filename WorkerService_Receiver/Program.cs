@@ -13,18 +13,20 @@ IHost host = Host.CreateDefaultBuilder(args)
            IConfiguration configuration = hostContext.Configuration;
            AppSettings.ConnectionString = configuration.GetConnectionString("DefaultConnection");
            AppSettings.QueueConnection = configuration.GetConnectionString("QueueConnection");
-           AppConfiguration.IntervalMinutes = Convert.ToInt32(System.Configuration.ConfigurationManager.AppSettings["IntervalMinutes"]);
+           AppConfiguration.IntervalMinutes = 
+            Convert.ToInt32(System.Configuration.ConfigurationManager.AppSettings["IntervalMinutes"]);
 
            var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
            optionsBuilder.UseSqlServer(AppSettings.ConnectionString);
            services.AddScoped<AppDbContext>(db => new AppDbContext(optionsBuilder.Options));
+           services.AddSingleton<IServerRepository, ServerRepository>();
 
            services.AddScoped<SampleService>();
            services.AddSingleton<Worker>();
-           services.AddSingleton<IServerRepository, ServerRepository>();
            services.AddHostedService(
                  provider => provider.GetRequiredService<Worker>());
        })
     .Build();
 
 await host.RunAsync();
+
